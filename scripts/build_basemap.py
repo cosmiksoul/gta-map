@@ -92,23 +92,23 @@ def build(data_dir):
               f'https://github.com/fbritoferreira/gta6/tree/{REVISION}, CC BY 4.0, '
               'https://creativecommons.org/licenses/by/4.0/. Reprojected, simplified, and restyled.</desc>',
               '<defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">'
-              '<path d="M100 0H0V100" fill="none" stroke="#86b3ba" opacity=".13" stroke-width="1"/>'
-              '<path d="M46 50h8m-4-4v8" stroke="#86b3ba" opacity=".16" stroke-width=".8"/>'
+              '<path d="M100 0H0V100" fill="none" stroke="#a8a0cc" opacity=".13" stroke-width="1"/>'
+              '<path d="M46 50h8m-4-4v8" stroke="#a8a0cc" opacity=".16" stroke-width=".8"/>'
               '</pattern></defs>',
-              '<rect width="100%" height="100%" fill="#102b35"/>',
+              '<rect width="100%" height="100%" fill="#252043"/>',
               '<rect width="100%" height="100%" fill="url(#grid)"/>',
               '<g transform="scale(.25)" fill-rule="evenodd" stroke-linejoin="round" stroke-linecap="round">']
-    for layer, color in (("shallow", "#1e4249"), ("land", "#3b5049"), ("park", "#355547"),
-                         ("urban", "#4b5652"), ("paved", "#788177"), ("sand", "#747b69"),
-                         ("building", "#5d6960")):
+    for layer, color in (("shallow", "#364865"), ("land", "#595069"), ("park", "#405b60"),
+                         ("urban", "#675264"), ("paved", "#897078"), ("sand", "#9e816f"),
+                         ("building", "#746078")):
         # Give each polygon its own fill operation so overlaps never punch holes.
-        outline = ' stroke="#7d9380" stroke-width="1.7"' if layer == "land" else ""
+        outline = ' stroke="#ac91a1" stroke-width="1.7"' if layer == "land" else ""
         result.append(f'<g fill="{color}"{outline}>')
         result.extend(f'<path d="{path}"/>' for path in polygons[layer] if path)
         result.append('</g>')
-    for layer, color, width in (("minor", "#63746a", 1.9), ("street", "#849186", 2.4),
-                                ("rails", "#879484", 2.4), ("main", "#b0a68a", 4),
-                                ("highway", "#c0ac7d", 5.4)):
+    for layer, color, width in (("minor", "#8a7890", 1.9), ("street", "#aa92a2", 2.4),
+                                ("rails", "#baadc2", 2.4), ("main", "#e1a58e", 4),
+                                ("highway", "#f6bf86", 5.4)):
         dash = ' stroke-dasharray="6 4"' if layer == "rails" else ""
         path = "".join(lines[layer])
         result.append(f'<path fill="none" stroke="{color}" stroke-width="{width}"{dash} d="{path}"/>')

@@ -4,8 +4,8 @@ const $ = (id) => document.getElementById(id);
 const format = new Intl.NumberFormat("ru-RU");
 const mobile = matchMedia("(max-width: 780px)");
 const palette = {
-  sports: "#ff9b73", events: "#ffd168", collections: "#e8a5e7",
-  heists: "#ff858d", transport: "#80c7f4", places: "#86d6b9",
+  sports: "#ff8869", events: "#ffd08a", collections: "#cea5fa",
+  heists: "#f45fa8", transport: "#81c6ff", places: "#67ddd1",
 };
 const sourceNames = { gtabase: "GTABase", tracker: "Tracker.gg", leonida: "Leonida Verse", ign: "IGN" };
 const atlas = { left: -10400, right: 3800, bottom: -9500, top: 10400 };
@@ -49,7 +49,7 @@ function el(tag, text, className) {
 function iconBadge(id, layer) {
   const node = el("span", null, "category-icon");
   node.setAttribute("aria-hidden", "true");
-  node.style.setProperty("--icon-tint", palette[layer] || "#d2e1dd");
+  node.style.setProperty("--icon-tint", palette[layer] || "#ecd7e5");
   node.append(MapIcons.svg(id, 19));
   return node;
 }
@@ -288,8 +288,8 @@ function drawLabels() {
       if (boxes.some((b) => b[0] < box[2] && b[2] > box[0] && b[1] < box[3] && b[3] > box[1])) continue;
       if (markers.some((m) => m.x - m.halfWidth < box[2] && m.x + m.halfWidth > box[0] && m.y - m.r < box[3] && m.y + m.r > box[1])) continue;
       boxes.push(box);
-      ctx.strokeStyle = "#223731"; ctx.strokeText(name, x, y);
-      ctx.fillStyle = region ? "#d6e2ce" : "#f1f2dc"; ctx.fillText(name, x, y);
+      ctx.strokeStyle = "#30213f"; ctx.strokeText(name, x, y);
+      ctx.fillStyle = region ? "#ffdaaf" : "#fff4e9"; ctx.fillText(name, x, y);
       break;
     }
   }
@@ -357,22 +357,22 @@ function drawPointBadge(group) {
   const current = point === selected;
   const radius = current ? 16 : 14;
   const {x, y} = group;
-  const ink = "#142e34";
+  const ink = "#281735";
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, 2 * Math.PI);
   if (current) {
-    ctx.strokeStyle = "#fffbe8"; ctx.lineWidth = 7; ctx.stroke();
+    ctx.strokeStyle = "#fff4e9"; ctx.lineWidth = 7; ctx.stroke();
   }
   ctx.fillStyle = palette[point.category.layer]; ctx.fill();
-  ctx.strokeStyle = "#153035"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = "#30203c"; ctx.lineWidth = 2; ctx.stroke();
   MapIcons.draw(ctx, point.category.id, x, y, current ? 22 : 20, ink);
   if (visited.has(point.id)) {
     const bx = x + radius * .72, by = y + radius * .72;
     ctx.beginPath(); ctx.arc(bx, by, 5.4, 0, 2 * Math.PI);
-    ctx.fillStyle = "#24483f"; ctx.fill();
-    ctx.lineWidth = 1.1; ctx.strokeStyle = "#f6fff1"; ctx.stroke();
+    ctx.fillStyle = "#391f46"; ctx.fill();
+    ctx.lineWidth = 1.1; ctx.strokeStyle = "#fff4e9"; ctx.stroke();
     ctx.beginPath(); ctx.moveTo(bx - 2.8, by); ctx.lineTo(bx - .7, by + 2); ctx.lineTo(bx + 2.8, by - 2);
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.55; ctx.stroke();
+    ctx.strokeStyle = "#8af5dc"; ctx.lineWidth = 1.55; ctx.stroke();
   }
 }
 function measureBadge(group) {
@@ -387,7 +387,7 @@ function measureBadge(group) {
   const pair = other && (members.length <= 5 || camera.scale >= .15) &&
     members.every((p) => p.category.id === id || p.category.id === other.category.id);
   group.icon = !other || pair ? id : sameLayer ? layer : "all";
-  group.color = sameLayer ? palette[layer] : "#c8dcd4";
+  group.color = sameLayer ? palette[layer] : "#e0b5d3";
   group.secondCategory = pair ? other.category : null;
   group.digitsWidth = ctx.measureText(String(members.length)).width;
   group.halfWidth = ((pair ? 42 : 26) + group.digitsWidth + 7) / 2;
@@ -401,7 +401,7 @@ function drawClusterBadge(group) {
   ctx.arc(left + w - group.r, y, group.r, -Math.PI / 2, Math.PI / 2);
   ctx.arc(left + group.r, y, group.r, Math.PI / 2, Math.PI * 1.5);
   ctx.closePath();
-  ctx.fillStyle = "#183439"; ctx.fill();
+  ctx.fillStyle = "#311e42"; ctx.fill();
   ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.stroke();
   if (secondCategory) {
     MapIcons.draw(ctx, icon, left + 14, y, 15, palette[group.points[0].category.layer]);
@@ -409,7 +409,7 @@ function drawClusterBadge(group) {
   } else {
     MapIcons.draw(ctx, icon, left + 14.5, y, 15, color);
   }
-  ctx.fillStyle = "#fffdf1";
+  ctx.fillStyle = "#fff4e9";
   ctx.fillText(String(group.points.length), left + w - 7 - group.digitsWidth / 2, y + .5);
 }
 function drawMarkers() {
@@ -425,7 +425,7 @@ function draw() {
   frame = 0;
   if (!camera || !ctx) return;
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  ctx.fillStyle = "#102b35"; ctx.fillRect(0, 0, screenWidth, screenHeight);
+  ctx.fillStyle = "#252043"; ctx.fillRect(0, 0, screenWidth, screenHeight);
   drawBase(); drawMarkers(); drawLabels();
   $("zoom-in").disabled = camera.scale >= maximumScale * .999;
   $("zoom-out").disabled = camera.scale <= minimumScale * 1.001;
@@ -594,7 +594,7 @@ document.addEventListener("keydown", (event) => {
 mobile.addEventListener("change", () => setPanel(false));
 base.onload = () => { updateStatus(); requestDraw(); };
 base.onerror = updateStatus;
-base.src = "./assets/basemap.svg";
+base.src = "./assets/basemap.svg?v=3";
 const observer = new ResizeObserver(resize);
 observer.observe($("map-area"));
 fetch("./assets/basemap-labels.json").then((res) => res.ok ? res.json() : []).then((rows) => {

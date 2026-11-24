@@ -1,14 +1,34 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" prefix="og: https://ogp.me/ns#">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#162c32">
-  <meta name="description" content="Интерактивная карта GTA VI. Найдите активности, коллекции и места Леониды и отмечайте посещённые точки.">
+  <meta name="theme-color" content="#281735">
+  <meta name="description" content="Найдите гонки, места рыбалки, тайники и другие занятия в GTA VI. Выбирайте категорию на карте Леониды и отмечайте места, где уже побывали.">
   <title>Атлас Леониды · Интерактивная карта GTA VI</title>
-  <link rel="stylesheet" href="./map.css?v=2">
+  <link rel="canonical" href="https://cosmiksoul.github.io/gta-map/">
+  <link rel="icon" type="image/x-icon" sizes="16x16 32x32 48x48" href="./favicon.ico">
+  <link rel="icon" type="image/svg+xml" sizes="any" href="./assets/atlas-mark.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:url" content="https://cosmiksoul.github.io/gta-map/">
+  <meta property="og:site_name" content="Атлас Леониды">
+  <meta property="og:title" content="Атлас Леониды — карта активностей GTA VI">
+  <meta property="og:description" content="Гонки, рыбалка, коллекции и тайники на одной карте. Выбирайте, куда отправиться, и отмечайте посещённые места.">
+  <meta property="og:image" content="https://cosmiksoul.github.io/gta-map/assets/social-preview.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Обложка «Атлас Леониды» с картой GTA VI в цветах заката.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Атлас Леониды — карта активностей GTA VI">
+  <meta name="twitter:description" content="Гонки, рыбалка, коллекции и тайники на одной карте. Выбирайте, куда отправиться, и отмечайте посещённые места.">
+  <meta name="twitter:image" content="https://cosmiksoul.github.io/gta-map/assets/social-preview.jpg">
+  <meta name="twitter:image:alt" content="Обложка «Атлас Леониды» с картой GTA VI в цветах заката.">
+  <link rel="stylesheet" href="./map.css?v=3">
   <script defer src="./map-icons.js?v=2"></script>
-  <script defer src="./map.js?v=2"></script>
+  <script defer src="./map.js?v=3"></script>
 </head>
 <body>
   <svg class="symbol-bank" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -23,10 +43,7 @@
   </svg>
   <header class="topbar">
     <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true">
-        <path fill="#ff936e" d="M24 2 39 36l-16-9-9 9z"/><path fill="#ffe2ae" d="m24 2-1 25-9 9z"/>
-        <path d="m5 38 15-6 10 5" fill="none" stroke="#7ec8bd" stroke-width="2.3" stroke-linecap="round"/>
-      </svg>
+      <img class="brand-mark" src="./assets/atlas-mark.svg" width="40" height="40" alt="">
       <h1>Атлас Леониды</h1><span class="game-name" lang="en">GTA VI</span>
     </div>
     <div class="search-tools">
@@ -79,7 +96,7 @@
         <div>Берега и дороги упрощены и перекрашены. <a href="https://github.com/fbritoferreira/gta6" target="_blank" rel="noopener">Open GTA 6 Map (fbritoferreira)</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></div>
         <div>Часть значков взята из <a href="./assets/lucide-LICENSE.txt" target="_blank" rel="noopener">Lucide и Feather</a>.</div>
       </details>
-      <div class="north" aria-hidden="true"><span>С</span><svg width="13" height="21" viewBox="0 0 13 21"><path d="m6.5 1 5.5 17-5.5-3-5.5 3z" fill="#d1e2d8"/><path d="m6.5 1 0 14-5.5 3z" fill="#7faaa6"/></svg></div>
+      <div class="north" aria-hidden="true"><span>С</span><svg width="13" height="21" viewBox="0 0 13 21"><path d="m6.5 1 5.5 17-5.5-3-5.5 3z" fill="#FFD08A"/><path d="m6.5 1 0 14-5.5 3z" fill="#F45FA8"/></svg></div>
     </section>
   </main>
   <noscript>Для интерактивной карты включите JavaScript в браузере.</noscript>

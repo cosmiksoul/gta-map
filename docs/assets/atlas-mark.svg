@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Атлас Леониды</title>
+  <defs>
+    <linearGradient id="sunset" x1="0" y1="8" x2="0" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD08A"/>
+      <stop offset=".45" stop-color="#FF8869"/>
+      <stop offset="1" stop-color="#F45FA8"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#281735"/>
+  <path fill="url(#sunset)" fill-rule="evenodd" d="M32 7a21 21 0 0 1 21 21c0 7-3.2 11.8-8.5 17.8L33.6 58a2.1 2.1 0 0 1-3.2 0L19.5 45.8C14.2 39.8 11 35 11 28A21 21 0 0 1 32 7Zm0 11a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"/>
+  <path fill="#281735" d="M8 32h24v3H8zm0 7h48v3H8z"/>
+</svg>
