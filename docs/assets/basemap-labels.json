@@ -1,0 +1,86 @@
+[
+  {
+    "name": "Vice City",
+    "x": -260.0,
+    "y": 715.0,
+    "kind": "city"
+  },
+  {
+    "name": "Port Gellhorn",
+    "x": -6600.0,
+    "y": 4230.0,
+    "kind": "city"
+  },
+  {
+    "name": "Ambrosia",
+    "x": -3080.0,
+    "y": 4200.0,
+    "kind": "city"
+  },
+  {
+    "name": "Leonida Keys",
+    "x": -4200.0,
+    "y": -6500.0,
+    "kind": "region"
+  },
+  {
+    "name": "Mount Kalaga National Park",
+    "x": -3430.0,
+    "y": 6371.0,
+    "kind": "region"
+  },
+  {
+    "name": "Grassrivers",
+    "x": -3300.0,
+    "y": -4300.0,
+    "kind": "region"
+  },
+  {
+    "name": "Waning Sands",
+    "x": -284.0,
+    "y": 3988.0,
+    "kind": "city"
+  },
+  {
+    "name": "Key Lento",
+    "x": -2400.0,
+    "y": -6030.0,
+    "kind": "city"
+  },
+  {
+    "name": "Capri",
+    "x": -7128.0,
+    "y": 167.0,
+    "kind": "city"
+  },
+  {
+    "name": "Vice Beach",
+    "x": 1490.0,
+    "y": 855.0,
+    "kind": "city"
+  },
+  {
+    "name": "Hamlet",
+    "x": -2900.0,
+    "y": -3156.0,
+    "kind": "city"
+  },
+  {
+    "name": "Watson Bay",
+    "x": -4900.0,
+    "y": -3440.0,
+    "kind": "city"
+  },
+  {
+    "name": "Gloriana Key",
+    "x": 680.0,
+    "y": -1440.0,
+    "kind": "city"
+  },
+  {
+    "name": "Lake Leonida",
+    "x": -1975.0,
+    "y": 4732.0,
+    "kind": "region"
+  }
+]
