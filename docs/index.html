@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#162c32">
+  <meta name="description" content="Интерактивная карта GTA VI. Найдите активности, коллекции и места Леониды и отмечайте посещённые точки.">
+  <title>Атлас Леониды · Интерактивная карта GTA VI</title>
+  <link rel="stylesheet" href="./map.css">
+  <script defer src="./map.js"></script>
+</head>
+<body>
+  <svg class="symbol-bank" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 6h7m5 0h6M3 12h12m5 0h1M3 18h3m5 0h10"/><circle cx="12.5" cy="6" r="2.3"/><circle cx="17.5" cy="12" r="2.3"/><circle cx="8.5" cy="18" r="2.3"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M13 5h6v6m0-6-9 9m1-7H5v12h12v-6"/></symbol>
+  </svg>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true">
+        <path fill="#ff936e" d="M24 2 39 36l-16-9-9 9z"/><path fill="#ffe2ae" d="m24 2-1 25-9 9z"/>
+        <path d="m5 38 15-6 10 5" fill="none" stroke="#7ec8bd" stroke-width="2.3" stroke-linecap="round"/>
+      </svg>
+      <h1>Атлас Леониды</h1><span class="game-name" lang="en">GTA VI</span>
+    </div>
+    <div class="search-tools">
+      <label class="search">
+        <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+        <input id="search" type="search" aria-label="Поиск по карте" placeholder="Место или категория" autocomplete="off">
+      </label>
+      <button id="panel-toggle" class="panel-toggle" type="button" aria-controls="catalog" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#i-filter"/></svg><span>Каталог</span></button>
+    </div>
+    <div id="top-count" class="top-count" role="status">Загрузка карты…</div>
+  </header>
+  <main class="workspace">
+    <button id="scrim" class="scrim" type="button" aria-label="Вернуться к карте" hidden></button>
+    <aside id="catalog" class="catalog" aria-label="Каталог точек">
+      <div class="filter-block">
+        <div class="section-head"><h2>Слои карты</h2><button id="reset" type="button" class="text-button" hidden>Сбросить</button></div>
+        <div id="layers" class="layers" role="group" aria-label="Слой карты"></div>
+        <label class="category-label" for="category">Категория</label>
+        <select id="category"><option value="">Все категории</option></select>
+        <label class="visited-filter"><input type="checkbox" id="hide-visited"> Скрыть посещённые</label>
+      </div>
+      <section class="result-block" aria-labelledby="result-heading">
+        <div class="section-head"><h2 id="result-heading">Список мест</h2><span id="result-count" class="count-chip">0</span></div>
+        <button id="clear-group" type="button" class="text-button" hidden>Показать весь список</button>
+        <div id="result-list" class="result-list"></div>
+        <button id="load-more" class="secondary-button" type="button" hidden>Показать ещё</button>
+      </section>
+    </aside>
+    <section id="map-area" class="map-area" aria-label="Карта Леониды">
+      <canvas id="map" tabindex="0" aria-label="Интерактивная карта. Стрелки перемещают карту, плюс и минус меняют масштаб. Выбрать место можно в каталоге."></canvas>
+      <div id="map-status" class="map-status" role="status">Загружаем карту…</div>
+      <div class="map-tools" role="group" aria-label="Управление картой">
+        <button id="zoom-in" type="button" aria-label="Увеличить масштаб" title="Увеличить масштаб"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button>
+        <button id="zoom-out" type="button" aria-label="Уменьшить масштаб" title="Уменьшить масштаб"><svg class="icon" aria-hidden="true"><use href="#i-minus"/></svg></button>
+        <button id="fit" type="button" aria-label="Показать все выбранные точки" title="Показать все выбранные точки"><svg class="icon" aria-hidden="true"><use href="#i-fit"/></svg></button>
+      </div>
+      <article id="detail" class="detail" aria-label="Выбранное место" hidden>
+        <button id="detail-close" type="button" aria-label="Закрыть карточку" class="close-button"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+        <div class="detail-category"><span id="detail-dot" class="dot"></span><span id="detail-category"></span></div>
+        <h2 id="detail-name" tabindex="-1"></h2>
+        <p id="detail-area" hidden></p>
+        <div id="detail-sources" class="source-links" aria-label="Источники"></div>
+        <button id="visit" class="visit-button" type="button"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span>Отметить посещённым</span></button>
+        <small id="save-notice" hidden>В этом браузере отметка сохранится только до закрытия страницы.</small>
+      </article>
+      <details class="attribution"><summary aria-label="Об источниках подложки" title="Об источниках подложки">О карте</summary>
+        <div>Берега и дороги упрощены и перекрашены. <a href="https://github.com/fbritoferreira/gta6" target="_blank" rel="noopener">Open GTA 6 Map (fbritoferreira)</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></div>
+      </details>
+      <div class="north" aria-hidden="true"><span>С</span><svg width="13" height="21" viewBox="0 0 13 21"><path d="m6.5 1 5.5 17-5.5-3-5.5 3z" fill="#d1e2d8"/><path d="m6.5 1 0 14-5.5 3z" fill="#7faaa6"/></svg></div>
+    </section>
+  </main>
+  <noscript>Для интерактивной карты включите JavaScript в браузере.</noscript>
+</body>
+</html>
