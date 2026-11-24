@@ -128,14 +128,11 @@ def make_poster():
     ink = field((y-280)/103, [(0, "ffc292"), (.52, "ff9f91"), (1, "f47da8")])
     image.paste(Image.fromarray(np.uint8(ink)), mask=word)
     draw.line([px(75, 437), px(136, 437)], fill="#f45fa8", width=4*SCALE)
-    draw.text(px(153, 437), "Карта активностей GTA VI", font=font(29), fill="#fff4e9", anchor="lm")
+    draw.text(px(153, 437), "Карта активностей GTA VI", font=font(34), fill="#fff4e9", anchor="lm")
 
-    mark = ASSETS / "atlas-mark.svg"
-    icon = ROOT / "docs" / "apple-touch-icon.png"
-    if mark.is_file() and icon.is_file():
-        logo = Image.open(icon).convert("RGBA")
-        logo.thumbnail(px(63, 63), Image.Resampling.LANCZOS)
-        image.paste(logo, px(73, 83), logo)
+    logo = Image.open(ROOT / "docs" / "apple-touch-icon.png").convert("RGBA")
+    logo.thumbnail(px(63, 63), Image.Resampling.LANCZOS)
+    image.paste(logo, px(73, 83), logo)
 
     exif = Image.Exif()
     exif[270] = "Leonida activity atlas. Reprojected and restyled Open GTA 6 Map vector data."
