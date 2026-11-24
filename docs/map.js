@@ -46,9 +46,11 @@ function el(tag, text, className) {
   if (className) node.className = className;
   return node;
 }
-function dot(color) {
-  const node = el("span", null, "dot");
-  node.style.setProperty("--dot-color", color);
+function iconBadge(id, layer) {
+  const node = el("span", null, "category-icon");
+  node.setAttribute("aria-hidden", "true");
+  node.style.setProperty("--icon-tint", palette[layer] || "#d2e1dd");
+  node.append(MapIcons.svg(id, 19));
   return node;
 }
 function normalize(value) {
@@ -91,7 +93,7 @@ function buildLayers() {
     const button = el("button", null, "layer");
     button.type = "button";
     button.dataset.layer = id;
-    button.append(dot(palette[id] || "#516864"), el("span", label), el("span", format.format(id ? counts.get(id) || 0 : points.length), "layer-count"));
+    button.append(iconBadge(id || "all", id), el("span", label), el("span", format.format(id ? counts.get(id) || 0 : points.length), "layer-count"));
     button.addEventListener("click", () => {
       activeLayer = id;
       buildCategories();
@@ -112,6 +114,11 @@ function applyFilters() {
   if (!loaded) return;
   const terms = normalize($("search").value).split(" ").filter(Boolean);
   const category = $("category").value;
+  const filterIcon = category || activeLayer || "all";
+  if ($("filter-icon").dataset.icon !== filterIcon) {
+    $("filter-icon").replaceChildren(MapIcons.svg(filterIcon, 19));
+    $("filter-icon").dataset.icon = filterIcon;
+  }
   const hideVisited = $("hide-visited").checked;
   filtered = points.filter((p) =>
     (!activeLayer || p.category.layer === activeLayer) &&
@@ -141,7 +148,8 @@ function renderResults() {
     const button = el("button", null, "result");
     button.type = "button";
     button.setAttribute("aria-current", String(p === selected));
-    button.append(dot(palette[p.category.layer]), el("strong", p.name), el("small", p.locality || p.category.label));
+    const description = p.locality ? p.category.label + " · " + p.locality : p.category.label;
+    button.append(iconBadge(p.category.id, p.category.layer), el("strong", p.name), el("small", description));
     if (visited.has(p.id)) {
       const check = el("span", "✓", "done");
       check.setAttribute("aria-label", "Посещено");
@@ -156,7 +164,7 @@ function renderResults() {
 function buildDetail() {
   if (!selected) return;
   $("detail-category").textContent = selected.category.label;
-  $("detail-dot").style.setProperty("--dot-color", palette[selected.category.layer]);
+  $("detail-icon").replaceChildren(iconBadge(selected.category.id, selected.category.layer));
   $("detail-name").textContent = selected.name;
   $("detail-area").textContent = selected.locality;
   $("detail-area").hidden = !selected.locality;
@@ -278,7 +286,7 @@ function drawLabels() {
       const box = [x - half, y - 8, x + half, y + 8];
       if (box[0] < 0 || box[2] > screenWidth || box[1] < 0 || box[3] > screenHeight) continue;
       if (boxes.some((b) => b[0] < box[2] && b[2] > box[0] && b[1] < box[3] && b[3] > box[1])) continue;
-      if (markers.some((m) => m.x - m.r < box[2] && m.x + m.r > box[0] && m.y - m.r < box[3] && m.y + m.r > box[1])) continue;
+      if (markers.some((m) => m.x - m.halfWidth < box[2] && m.x + m.halfWidth > box[0] && m.y - m.r < box[3] && m.y + m.r > box[1])) continue;
       boxes.push(box);
       ctx.strokeStyle = "#223731"; ctx.strokeText(name, x, y);
       ctx.fillStyle = region ? "#d6e2ce" : "#f1f2dc"; ctx.fillText(name, x, y);
@@ -286,11 +294,12 @@ function drawLabels() {
     }
   }
 }
-function drawMarkers() {
-  // The bins are anchored in world space so clusters do not jump when the user pans.
-  const cell = camera.scale < .075 ? 105 : camera.scale < .15 ? 65 : camera.scale < .6 ? 38 : 22;
+function groupMarkers() {
+  // Use world-space cells so panning doesn't move a point between groups.
+  const cell = camera.scale < .075 ? 105 : camera.scale < .15 ? 70 : camera.scale < .6 ? 52 : 44;
   const bins = new Map();
   for (const p of filtered) {
+    if (p === selected) continue;
     const x = sx(p.x), y = sy(p.y);
     if (x < -cell || y < -cell || x > screenWidth + cell || y > screenHeight + cell) continue;
     const key = Math.floor((p.x - atlas.left) * camera.scale / cell) + "," + Math.floor((atlas.top - p.y) * camera.scale / cell);
@@ -298,33 +307,118 @@ function drawMarkers() {
     if (!group) { group = { x: 0, y: 0, points: [] }; bins.set(key, group); }
     group.x += x; group.y += y; group.points.push(p);
   }
-  markers = [...bins.values()];
-  const singleLayer = Boolean(activeLayer || $("category").value);
-  ctx.font = "700 11px 'Segoe UI', sans-serif";
-  ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  for (const group of markers) {
-    const size = group.points.length;
-    group.x /= size; group.y /= size;
-    const single = size === 1;
-    const point = group.points[0];
-    const color = palette[point.category.layer] || "#c3d8c9";
-    const fill = single ? color : "#223d40";
-    group.r = single ? 5.5 : size > 99 ? 16 : size > 9 ? 13.5 : 11;
-    ctx.beginPath(); ctx.arc(group.x, group.y, group.r, 0, Math.PI * 2);
-    ctx.fillStyle = fill; ctx.fill();
-    ctx.lineWidth = single ? 1.6 : 1.5;
-    ctx.strokeStyle = single ? "#173135" : (singleLayer ? color : "#a3c6ae"); ctx.stroke();
-    if (!single) { ctx.fillStyle = "#f9fff2"; ctx.fillText(String(size), group.x, group.y + .5); }
-    else if (visited.has(point.id)) {
-      ctx.beginPath(); ctx.moveTo(group.x - 3, group.y); ctx.lineTo(group.x - 1, group.y + 2); ctx.lineTo(group.x + 3, group.y - 2);
-      ctx.lineWidth = 1.7; ctx.strokeStyle = "#183934"; ctx.stroke();
+  // Two points can straddle a cell edge yet share almost the same screen position.
+  // Combine overlapping neighbours so their badges and touch targets remain usable.
+  const occupied = new Map();
+  const groups = new Set();
+  const originX = sx(atlas.left), originY = sy(atlas.top);
+  for (const group of bins.values()) {
+    group.x /= group.points.length; group.y /= group.points.length;
+    for (;;) {
+      measureBadge(group);
+      const col = Math.floor((group.x - originX) / 96), row = Math.floor((group.y - originY) / 96);
+      let neighbour;
+      for (let i = col - 1; i <= col + 1 && !neighbour; i++) {
+        for (let j = row - 1; j <= row + 1 && !neighbour; j++) {
+          neighbour = occupied.get(i + "," + j)?.find((other) =>
+            Math.abs(other.x - group.x) < other.halfWidth + group.halfWidth + 4 &&
+            Math.abs(other.y - group.y) < other.r + group.r + 4);
+        }
+      }
+      if (!neighbour) {
+        group.cell = col + "," + row;
+        if (!occupied.has(group.cell)) occupied.set(group.cell, []);
+        occupied.get(group.cell).push(group);
+        groups.add(group);
+        break;
+      }
+      // The centroid, glyph count and text width can all change on a merge.
+      // Remove the old footprint and check the combined badge again before insertion.
+      const bucket = occupied.get(neighbour.cell);
+      bucket.splice(bucket.indexOf(neighbour), 1);
+      groups.delete(neighbour);
+      const share = neighbour.points.length / (group.points.length + neighbour.points.length);
+      group.x += (neighbour.x - group.x) * share;
+      group.y += (neighbour.y - group.y) * share;
+      group.points.push(...neighbour.points);
     }
   }
   if (selected) {
     const x = sx(selected.x), y = sy(selected.y);
-    ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2);
-    ctx.strokeStyle = "#132d34"; ctx.lineWidth = 5; ctx.stroke();
-    ctx.strokeStyle = "#fffce0"; ctx.lineWidth = 2; ctx.stroke();
+    if (x >= -24 && y >= -24 && x <= screenWidth + 24 && y <= screenHeight + 24) {
+      const pin = { x, y, points: [selected] };
+      measureBadge(pin); groups.add(pin);
+    }
+  }
+  return [...groups];
+}
+function drawPointBadge(group) {
+  const point = group.points[0];
+  const current = point === selected;
+  const radius = current ? 16 : 14;
+  const {x, y} = group;
+  const ink = "#142e34";
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, 2 * Math.PI);
+  if (current) {
+    ctx.strokeStyle = "#fffbe8"; ctx.lineWidth = 7; ctx.stroke();
+  }
+  ctx.fillStyle = palette[point.category.layer]; ctx.fill();
+  ctx.strokeStyle = "#153035"; ctx.lineWidth = 2; ctx.stroke();
+  MapIcons.draw(ctx, point.category.id, x, y, current ? 22 : 20, ink);
+  if (visited.has(point.id)) {
+    const bx = x + radius * .72, by = y + radius * .72;
+    ctx.beginPath(); ctx.arc(bx, by, 5.4, 0, 2 * Math.PI);
+    ctx.fillStyle = "#24483f"; ctx.fill();
+    ctx.lineWidth = 1.1; ctx.strokeStyle = "#f6fff1"; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx - 2.8, by); ctx.lineTo(bx - .7, by + 2); ctx.lineTo(bx + 2.8, by - 2);
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.55; ctx.stroke();
+  }
+}
+function measureBadge(group) {
+  const members = group.points;
+  if (members.length === 1) {
+    group.r = group.halfWidth = members[0] === selected ? 20 : 16;
+    return;
+  }
+  const {id, layer} = members[0].category;
+  const other = members.find((p) => p.category.id !== id);
+  const sameLayer = !other || members.every((p) => p.category.layer === layer);
+  const pair = other && (members.length <= 5 || camera.scale >= .15) &&
+    members.every((p) => p.category.id === id || p.category.id === other.category.id);
+  group.icon = !other || pair ? id : sameLayer ? layer : "all";
+  group.color = sameLayer ? palette[layer] : "#c8dcd4";
+  group.secondCategory = pair ? other.category : null;
+  group.digitsWidth = ctx.measureText(String(members.length)).width;
+  group.halfWidth = ((pair ? 42 : 26) + group.digitsWidth + 7) / 2;
+  group.r = 12;
+}
+function drawClusterBadge(group) {
+  const {x, y, icon, color, secondCategory} = group;
+  const w = group.halfWidth * 2;
+  const left = x - group.halfWidth;
+  ctx.beginPath();
+  ctx.arc(left + w - group.r, y, group.r, -Math.PI / 2, Math.PI / 2);
+  ctx.arc(left + group.r, y, group.r, Math.PI / 2, Math.PI * 1.5);
+  ctx.closePath();
+  ctx.fillStyle = "#183439"; ctx.fill();
+  ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.stroke();
+  if (secondCategory) {
+    MapIcons.draw(ctx, icon, left + 14, y, 15, palette[group.points[0].category.layer]);
+    MapIcons.draw(ctx, secondCategory.id, left + 30, y, 15, palette[secondCategory.layer]);
+  } else {
+    MapIcons.draw(ctx, icon, left + 14.5, y, 15, color);
+  }
+  ctx.fillStyle = "#fffdf1";
+  ctx.fillText(String(group.points.length), left + w - 7 - group.digitsWidth / 2, y + .5);
+}
+function drawMarkers() {
+  ctx.font = "700 12px 'Segoe UI', sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  markers = groupMarkers();
+  for (const group of markers) {
+    if (group.points.length === 1) drawPointBadge(group);
+    else drawClusterBadge(group);
   }
 }
 function draw() {
@@ -339,17 +433,26 @@ function draw() {
 function requestDraw() {
   if (!frame) frame = requestAnimationFrame(draw);
 }
-function selectAt(x, y) {
-  let hit = null, distance = Infinity;
-  const touchRadius = mobile.matches || matchMedia("(pointer: coarse)").matches ? 22 : 12;
-  for (const m of markers) {
-    const d = Math.hypot(m.x - x, m.y - y);
-    if (d < Math.max(touchRadius, m.r + 4) && d < distance) { hit = m; distance = d; }
+function markerAt(x, y, touch) {
+  let hit = null, nearest = Infinity;
+  for (let i = markers.length - 1; i >= 0; i--) {
+    const m = markers[i];
+    const dx = Math.abs(m.x - x), dy = Math.abs(m.y - y);
+    const radius = Math.max(touch ? 22 : 0, m.r + 2);
+    const capsuleDx = Math.max(0, dx - (m.halfWidth - m.r));
+    if (capsuleDx * capsuleDx + dy * dy > radius * radius) continue;
+    if (m.points.length === 1 && m.points[0] === selected && dx * dx + dy * dy < m.r * m.r) return m;
+    const distance = dx * dx + dy * dy;
+    if (distance < nearest) { hit = m; nearest = distance; }
   }
+  return hit;
+}
+function selectAt(x, y, touch = mobile.matches || matchMedia("(pointer: coarse)").matches) {
+  const hit = markerAt(x, y, touch);
   if (!hit) { clearDetail(); renderResults(); return; }
   if (hit.points.length === 1) { openPoint(hit.points[0], false); return; }
   const [x0,y0,x1,y1] = visibleBounds(hit.points);
-  if (camera.scale >= maximumScale * .97 || Math.max(x1-x0,y1-y0) * maximumScale < 22) {
+  if (camera.scale >= maximumScale * .97 || Math.max(x1-x0,y1-y0) * maximumScale < 25) {
     clearDetail();
     groupedResults = hit.points;
     listLimit = 24;
@@ -375,8 +478,24 @@ function local(event) {
   const rect = canvas.getBoundingClientRect();
   return { x: event.clientX - rect.left, y: event.clientY - rect.top };
 }
+function hoverText(marker) {
+  if (!marker) return "";
+  const rows = marker.points;
+  if (rows.length === 1) return rows[0].category.label + " · " + rows[0].name;
+  if (!marker.summary) {
+    const totals = new Map();
+    for (const point of rows) totals.set(point.category.label, (totals.get(point.category.label) || 0) + 1);
+    const kinds = [...totals].sort((a, b) => b[1] - a[1]);
+    const names = kinds.slice(0, 3).map(([name, count]) => name + " (" + count + ")");
+    if (kinds.length > 3) names.push("…");
+    marker.summary = format.format(rows.length) + " " + wordEnding(rows.length, ["точка", "точки", "точек"]) + " · " + names.join(", ");
+  }
+  return marker.summary;
+}
+canvas.addEventListener("pointerleave", () => { canvas.title = ""; canvas.style.cursor = ""; });
 canvas.addEventListener("pointerdown", (event) => {
   if (!camera || event.button !== 0) return;
+  canvas.title = ""; canvas.style.cursor = "";
   const position = local(event);
   if (!pointers.size) { startPointer = position; drag = false; }
   else drag = true;
@@ -384,7 +503,16 @@ canvas.addEventListener("pointerdown", (event) => {
   canvas.setPointerCapture(event.pointerId);
 });
 canvas.addEventListener("pointermove", (event) => {
-  if (!pointers.has(event.pointerId)) return;
+  if (!pointers.has(event.pointerId)) {
+    if (event.pointerType === "mouse" && !event.buttons) {
+      const position = local(event);
+      const hit = markerAt(position.x, position.y, false);
+      const title = hoverText(hit);
+      if (canvas.title !== title) canvas.title = title;
+      canvas.style.cursor = hit ? "pointer" : "";
+    }
+    return;
+  }
   const prev = gesture(), point = local(event);
   pointers.set(event.pointerId, point);
   const next = gesture();
@@ -401,7 +529,7 @@ function pointerEnd(event) {
   const wasTap = event.type === "pointerup" && pointers.size === 1 && !drag;
   pointers.delete(event.pointerId);
   if (!pointers.size) canvas.classList.remove("dragging");
-  if (wasTap) { const p = local(event); selectAt(p.x, p.y); }
+  if (wasTap) { const p = local(event); selectAt(p.x, p.y, event.pointerType !== "mouse"); }
 }
 canvas.addEventListener("pointerup", pointerEnd);
 canvas.addEventListener("pointercancel", pointerEnd);
