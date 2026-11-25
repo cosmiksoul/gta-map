@@ -26,9 +26,10 @@
   <meta name="twitter:description" content="Гонки, рыбалка, коллекции и тайники на одной карте. Выбирайте, куда отправиться, и отмечайте посещённые места.">
   <meta name="twitter:image" content="https://cosmiksoul.github.io/gta-map/assets/social-preview.jpg">
   <meta name="twitter:image:alt" content="Обложка «Атлас Леониды» с картой GTA VI в цветах заката.">
-  <link rel="stylesheet" href="./map.css?v=3">
-  <script defer src="./map-icons.js?v=2"></script>
-  <script defer src="./map.js?v=3"></script>
+  <link rel="stylesheet" href="./map.css?v=4">
+  <script defer src="./map-icons.js?v=4"></script>
+  <script defer src="./catalog.js?v=4"></script>
+  <script defer src="./map.js?v=4"></script>
 </head>
 <body>
   <svg class="symbol-bank" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -59,14 +60,18 @@
     <button id="scrim" class="scrim" type="button" aria-label="Вернуться к карте" hidden></button>
     <aside id="catalog" class="catalog" aria-label="Каталог точек">
       <div class="filter-block">
-        <div class="section-head"><h2>Слои карты</h2><button id="reset" type="button" class="text-button" hidden>Сбросить</button></div>
-        <div id="layers" class="layers" role="group" aria-label="Слой карты"></div>
-        <label class="category-label" for="category">Категория</label>
-        <div class="category-picker">
-          <span id="filter-icon" aria-hidden="true"></span>
-          <select id="category"><option value="">Все категории</option></select>
+        <div class="section-head"><h2>Каталог</h2><button id="reset" type="button" class="text-button" hidden>Сбросить</button></div>
+        <div class="catalog-modes" role="group" aria-label="Режим каталога">
+          <button type="button" id="mode-map" aria-pressed="true">Все места</button>
+          <button type="button" id="mode-completion" aria-pressed="false">Для 100%</button>
         </div>
-        <label class="visited-filter"><input type="checkbox" id="hide-visited"> Скрыть посещённые</label>
+        <div id="completion-info" hidden>
+          <p id="completion-progress"></p>
+          <a href="https://www.gtabase.com/articles/gta-6/gta-6-100-completion-guide-interactive-checklist" target="_blank" rel="noopener">Полный чек-лист GTABase ↗</a>
+        </div>
+        <label class="visited-filter" id="source-filter"><input type="checkbox" id="gtabase-only"> Только точки GTABase</label>
+        <label class="visited-filter"><input type="checkbox" id="hide-visited"><span id="hide-label">Скрыть найденные</span></label>
+        <div id="layers" aria-label="Разделы и категории"></div>
       </div>
       <section class="result-block" aria-labelledby="result-heading">
         <div class="section-head"><h2 id="result-heading">Список мест</h2><span id="result-count" class="count-chip">0</span></div>
@@ -90,9 +95,11 @@
         <p id="detail-area" hidden></p>
         <div id="detail-sources" class="source-links" aria-label="Источники"></div>
         <button id="visit" class="visit-button" type="button"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span>Отметить посещённым</span></button>
+        <div id="goal-actions" hidden></div>
         <small id="save-notice" hidden>В этом браузере отметка сохранится только до закрытия страницы.</small>
       </article>
       <details class="attribution"><summary>О карте</summary>
+        <div>Разделы каталога и условия прохождения сверены с <a href="https://www.gtabase.com/gta-6/map/" target="_blank" rel="noopener">GTABase</a> 25 ноября 2026 года.</div>
         <div>Берега и дороги упрощены и перекрашены. <a href="https://github.com/fbritoferreira/gta6" target="_blank" rel="noopener">Open GTA 6 Map (fbritoferreira)</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></div>
         <div>Часть значков взята из <a href="./assets/lucide-LICENSE.txt" target="_blank" rel="noopener">Lucide и Feather</a>.</div>
       </details>

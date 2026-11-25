@@ -4,8 +4,9 @@ const $ = (id) => document.getElementById(id);
 const format = new Intl.NumberFormat("ru-RU");
 const mobile = matchMedia("(max-width: 780px)");
 const palette = {
-  sports: "#ff8869", events: "#ffd08a", collections: "#cea5fa",
-  heists: "#f45fa8", transport: "#81c6ff", places: "#67ddd1",
+  properties: "#f5cb9f", robberies: "#f45fa8", activities: "#ff8869",
+  collectibles: "#ffda88", "collectible-cards": "#cea5fa", vehicles: "#81c6ff",
+  weapons: "#a8b7e7", style: "#fab4d3", "food-drink": "#ffb388", "local-places": "#67ddd1",
 };
 const sourceNames = { gtabase: "GTABase", tracker: "Tracker.gg", leonida: "Leonida Verse", ign: "IGN" };
 const atlas = { left: -10400, right: 3800, bottom: -9500, top: 10400 };
@@ -18,9 +19,19 @@ let filtered = [];
 let groupedResults = null;
 let layers = [];
 let categories = new Map();
-let activeLayer = "";
+let groups = [];
+let sections = [];
+let catalogMode = "map";
+let activeGroup = "";
+let activeCategory = "";
+let searchTerms = [];
+let categoryPoints = new Map();
+const goalsByPoint = new Map();
+let goalsDone = new Set();
+const goalsKey = "leonida-atlas.goals.v1";
 let selected = null;
 let visited = new Set();
+const foundTargets = new Set();
 let storageWorks = true;
 let listLimit = 24;
 let loaded = false;
@@ -36,6 +47,8 @@ const storeKey = "leonida-atlas.visited.v1";
 try {
   const saved = JSON.parse(localStorage.getItem(storeKey) || "[]");
   if (Array.isArray(saved)) visited = new Set(saved.filter((id) => typeof id === "string"));
+  const savedGoals = JSON.parse(localStorage.getItem(goalsKey) || "[]");
+  if (Array.isArray(savedGoals)) goalsDone = new Set(savedGoals.filter((id) => typeof id === "string"));
 } catch {
   storageWorks = false;
 }
@@ -52,6 +65,9 @@ function iconBadge(id, layer) {
   node.style.setProperty("--icon-tint", palette[layer] || "#ecd7e5");
   node.append(MapIcons.svg(id, 19));
   return node;
+}
+function categoryBadge(category) {
+  return iconBadge(category.icon, category.layer);
 }
 function normalize(value) {
   return value.toLocaleLowerCase("ru").normalize("NFKD").replace(/\p{M}/gu, "").replaceAll("ё", "е").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -86,52 +102,16 @@ function clearDetail() {
   $("detail").hidden = true;
   requestDraw();
 }
-function buildLayers() {
-  const counts = new Map();
-  for (const p of points) counts.set(p.category.layer, (counts.get(p.category.layer) || 0) + 1);
-  const buttons = [{ id: "", label: "Все слои" }, ...layers].map(({ id, label }) => {
-    const button = el("button", null, "layer");
-    button.type = "button";
-    button.dataset.layer = id;
-    button.append(iconBadge(id || "all", id), el("span", label), el("span", format.format(id ? counts.get(id) || 0 : points.length), "layer-count"));
-    button.addEventListener("click", () => {
-      activeLayer = id;
-      buildCategories();
-      applyFilters();
-    });
-    return button;
-  });
-  $("layers").replaceChildren(...buttons);
-}
-function buildCategories() {
-  const select = $("category");
-  select.replaceChildren(new Option("Все категории", ""));
-  for (const category of categories.values()) {
-    if (!activeLayer || category.layer === activeLayer) select.add(new Option(category.label, category.id));
-  }
-}
 function applyFilters() {
   if (!loaded) return;
-  const terms = normalize($("search").value).split(" ").filter(Boolean);
-  const category = $("category").value;
-  const filterIcon = category || activeLayer || "all";
-  if ($("filter-icon").dataset.icon !== filterIcon) {
-    $("filter-icon").replaceChildren(MapIcons.svg(filterIcon, 19));
-    $("filter-icon").dataset.icon = filterIcon;
-  }
-  const hideVisited = $("hide-visited").checked;
-  filtered = points.filter((p) =>
-    (!activeLayer || p.category.layer === activeLayer) &&
-    (!category || p.category.id === category) &&
-    (!hideVisited || !visited.has(p.id)) &&
-    terms.every((term) => p.searchText.includes(term)));
+  searchTerms = normalize($("search").value).split(" ").filter(Boolean);
+  const visible = catalogPredicate();
+  filtered = points.filter(visible);
   groupedResults = null;
   listLimit = 24;
   if (selected && !filtered.includes(selected)) clearDetail();
-  $("reset").hidden = !activeLayer && !category && !hideVisited && !$("search").value;
-  for (const button of $("layers").children) {
-    button.setAttribute("aria-pressed", String(button.dataset.layer === activeLayer));
-  }
+  $("reset").hidden = !activeGroup && !activeCategory && !$("hide-visited").checked &&
+    !(catalogMode === "map" && $("gtabase-only").checked) && !$("search").value;
   $("top-count").textContent = format.format(filtered.length) + " " + wordEnding(filtered.length, ["точка", "точки", "точек"]);
   renderResults();
   updateStatus();
@@ -149,10 +129,10 @@ function renderResults() {
     button.type = "button";
     button.setAttribute("aria-current", String(p === selected));
     const description = p.locality ? p.category.label + " · " + p.locality : p.category.label;
-    button.append(iconBadge(p.category.id, p.category.layer), el("strong", p.name), el("small", description));
-    if (visited.has(p.id)) {
+    button.append(categoryBadge(p.category), el("strong", p.name), el("small", description));
+    if (checkedOnMap(p)) {
       const check = el("span", "✓", "done");
-      check.setAttribute("aria-label", "Посещено");
+      check.setAttribute("aria-label", catalogMode === "map" ? "Посещено" : "Выполнено");
       button.append(check);
     }
     button.addEventListener("click", () => openPoint(p, true));
@@ -163,25 +143,31 @@ function renderResults() {
 }
 function buildDetail() {
   if (!selected) return;
-  $("detail-category").textContent = selected.category.label;
-  $("detail-icon").replaceChildren(iconBadge(selected.category.id, selected.category.layer));
+  $("detail-category").textContent = selected.category.groupLabel + " › " + selected.category.label;
+  $("detail-icon").replaceChildren(categoryBadge(selected.category));
   $("detail-name").textContent = selected.name;
   $("detail-area").textContent = selected.locality;
   $("detail-area").hidden = !selected.locality;
   const links = [];
   for (const [key, url] of Object.entries(selected.sources)) {
     if (!sourceNames[key] || !url.startsWith("https://")) continue;
-    const a = el("a", sourceNames[key] + " ↗");
-    a.href = url;
+    const historical = selected.category.archived && key === "gtabase";
+    const a = el("a", (historical ? "Карта GTABase" : sourceNames[key]) + " ↗");
+    a.href = historical ? "https://www.gtabase.com/gta-6/map/" : url;
     a.target = "_blank";
     a.rel = "noopener";
     links.push(a);
   }
   $("detail-sources").replaceChildren(...links);
-  const seen = visited.has(selected.id);
+  const seen = foundTargets.has(selected.category.sharedTarget.get(selected.id) || selected.id);
+  const alternative = selected.category.sharedTarget.has(selected.id);
   $("visit").setAttribute("aria-pressed", String(seen));
-  $("visit").querySelector("span").textContent = seen ? "Посещено · снять отметку" : "Отметить посещённым";
+  $("visit").querySelector("span").textContent = alternative
+    ? (seen ? "Найдено · снять отметку" : "Отметить предмет найденным")
+    : (seen ? "Посещено · снять отметку" : "Отметить посещённым");
   $("save-notice").hidden = storageWorks;
+  $("visit").hidden = catalogMode !== "map";
+  buildGoalActions(selected);
   $("detail").hidden = false;
 }
 function openPoint(p, center) {
@@ -200,12 +186,21 @@ function openPoint(p, center) {
 function toggleVisited() {
   if (!selected) return;
   const id = selected.id;
-  if (visited.has(id)) visited.delete(id); else visited.add(id);
+  const target = selected.category.sharedTarget.get(id) || id;
+  if (foundTargets.has(target)) {
+    const alternatives = selected.category.units?.find(ids => ids[0] === target) || [id];
+    for (const member of alternatives) visited.delete(member);
+    foundTargets.delete(target);
+  } else {
+    visited.add(id);
+    foundTargets.add(target);
+  }
   try {
     localStorage.setItem(storeKey, JSON.stringify([...visited]));
     storageWorks = true;
   } catch { storageWorks = false; }
   buildDetail();
+  renderCatalog();
   applyFilters();
 }
 function visibleBounds(rows) {
@@ -363,10 +358,10 @@ function drawPointBadge(group) {
   if (current) {
     ctx.strokeStyle = "#fff4e9"; ctx.lineWidth = 7; ctx.stroke();
   }
-  ctx.fillStyle = palette[point.category.layer]; ctx.fill();
+  ctx.fillStyle = palette[point.category.layer] || "#ecd7e5"; ctx.fill();
   ctx.strokeStyle = "#30203c"; ctx.lineWidth = 2; ctx.stroke();
-  MapIcons.draw(ctx, point.category.id, x, y, current ? 22 : 20, ink);
-  if (visited.has(point.id)) {
+  MapIcons.draw(ctx, point.category.icon, x, y, current ? 22 : 20, ink);
+  if (checkedOnMap(point)) {
     const bx = x + radius * .72, by = y + radius * .72;
     ctx.beginPath(); ctx.arc(bx, by, 5.4, 0, 2 * Math.PI);
     ctx.fillStyle = "#391f46"; ctx.fill();
@@ -386,8 +381,8 @@ function measureBadge(group) {
   const sameLayer = !other || members.every((p) => p.category.layer === layer);
   const pair = other && (members.length <= 5 || camera.scale >= .15) &&
     members.every((p) => p.category.id === id || p.category.id === other.category.id);
-  group.icon = !other || pair ? id : sameLayer ? layer : "all";
-  group.color = sameLayer ? palette[layer] : "#e0b5d3";
+  group.icon = !other || pair ? members[0].category.icon : sameLayer ? members[0].category.layerIcon : "all";
+  group.color = (sameLayer && palette[layer]) || "#e0b5d3";
   group.secondCategory = pair ? other.category : null;
   group.digitsWidth = ctx.measureText(String(members.length)).width;
   group.halfWidth = ((pair ? 42 : 26) + group.digitsWidth + 7) / 2;
@@ -404,8 +399,8 @@ function drawClusterBadge(group) {
   ctx.fillStyle = "#311e42"; ctx.fill();
   ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.stroke();
   if (secondCategory) {
-    MapIcons.draw(ctx, icon, left + 14, y, 15, palette[group.points[0].category.layer]);
-    MapIcons.draw(ctx, secondCategory.id, left + 30, y, 15, palette[secondCategory.layer]);
+    MapIcons.draw(ctx, icon, left + 14, y, 15, palette[group.points[0].category.layer] || "#ecd7e5");
+    MapIcons.draw(ctx, secondCategory.icon, left + 30, y, 15, palette[secondCategory.layer] || "#ecd7e5");
   } else {
     MapIcons.draw(ctx, icon, left + 14.5, y, 15, color);
   }
@@ -572,12 +567,19 @@ $("search").addEventListener("keydown", (event) => {
     else { openResults(); $("result-list").querySelector("button")?.focus(); }
   }
 });
-$("category").addEventListener("change", applyFilters);
+$("mode-map").addEventListener("click", () => switchCatalog("map"));
+$("mode-completion").addEventListener("click", () => switchCatalog("completion"));
+$("gtabase-only").addEventListener("change", () => {
+  if (groups.find(g => g.id === activeGroup)?.layer === "extra") activeGroup = activeCategory = "";
+  renderCatalog();
+  applyFilters();
+});
 $("hide-visited").addEventListener("change", applyFilters);
 $("reset").addEventListener("click", () => {
-  activeLayer = ""; $("search").value = ""; $("hide-visited").checked = false;
+  activeGroup = activeCategory = ""; $("search").value = ""; $("hide-visited").checked = false;
+  if (catalogMode === "map") $("gtabase-only").checked = false;
   $("catalog").classList.remove("searching");
-  buildCategories(); applyFilters();
+  renderCatalog(); applyFilters();
 });
 $("zoom-in").addEventListener("click", () => zoomAt(1.7));
 $("zoom-out").addEventListener("click", () => zoomAt(1 / 1.7));
@@ -602,19 +604,44 @@ fetch("./assets/basemap-labels.json").then((res) => res.ok ? res.json() : []).th
 }).catch(() => {});
 async function init() {
   try {
-    const response = await fetch("./assets/points.json");
+    const response = await fetch("./assets/points.json?v=4");
     if (!response.ok) throw Error("points");
     const data = await response.json();
     layers = data.layers;
-    categories = new Map(data.categories.map((c) => [c.id, c]));
-    const layerNames = new Map(layers.map((layer) => [layer.id, layer.label]));
+    groups = data.groups;
+    const layerIndex = new Map(layers.map(layer => [layer.id, layer]));
+    const groupLabels = new Map(groups.map(group => [group.id, group.label]));
+    categories = new Map(data.categories.map(c => {
+      c.layerIcon = layerIndex.get(c.layer).icon;
+      c.groupLabel = groupLabels.get(c.group);
+      c.sharedTarget = new Map();
+      for (const unit of c.units || []) {
+        for (const id of unit) c.sharedTarget.set(id, unit[0]);
+      }
+      return [c.id, c];
+    }));
     points = data.points.map(([id, name, categoryId, x, y, sources, locality]) => {
       const category = categories.get(categoryId);
-      const searchText = normalize([name, locality, category.label, categoryId, layerNames.get(category.layer)].join(" "));
-      return { id, name, category, x, y, sources, locality, searchText };
+      const layer = layerIndex.get(category.layer);
+      const searchText = normalize([name, locality, category.label, category.en, categoryId, layer.label, layer.en].join(" "));
+      const point = { id, name, category, x, y, sources, locality, searchText };
+      if (visited.has(id)) foundTargets.add(category.sharedTarget.get(id) || id);
+      if (!categoryPoints.has(categoryId)) categoryPoints.set(categoryId, []);
+      categoryPoints.get(categoryId).push(point);
+      return point;
     });
     loaded = true;
-    buildLayers(); buildCategories(); resize(); applyFilters(); fit(points);
+    const query = new URLSearchParams(location.search);
+    const section = groups.find(group => group.id === query.get("section"));
+    if (section) activeGroup = section.id;
+    $("gtabase-only").checked = query.get("source") === "gtabase" && section?.layer !== "extra";
+    renderCatalog(); resize(); applyFilters(); fit(filtered);
+    if (query.get("view") === "completion") {
+      await switchCatalog("completion");
+      setPanel(true);
+    } else if (section) {
+      setPanel(true);
+    }
   } catch {
     $("top-count").textContent = "Ошибка загрузки";
     mapStatus("Не удалось загрузить точки.");

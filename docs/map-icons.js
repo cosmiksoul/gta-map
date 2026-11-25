@@ -6,6 +6,19 @@
   "use strict";
 
   const paths = {
+    "race-challenge": "M6 13a7.5 7.5 0 1 0 15 0 7.5 7.5 0 0 0-15 0z M13.5 5.5V3m-2.5 0h5M19 7l1.5-1.5M14 12.8l3.2-3.1M2 11h3m-4 4h3",
+    "cocaine-flamingo": "M3 11c3 1.2 5.4 1.1 8.2.3 2.5-.7 4.6-.6 5.4-2 .7-1.3-.4-2.3-.5-3.5-.2-2.1 1.1-3.3 2.8-3.3 1.8 0 2.9 1.2 2.8 2.7l-1.7 2-1.6-1.2 M3 11c1.5 4.1 4 5.7 7.6 5.5 3.5-.2 7.1-3.5 6.7-7 M10 16.8v5h3 M12.7 16l2.6 2.7-2 1.8",
+    "style-magazine": "M4 3h14a2 2 0 0 1 2 2v15H6a2 2 0 0 1-2-2z M7.5 3v17m3.5-13 2-1a2 2 0 0 0 3 0l2 1-1 2.8-1.2-.3v4H13v-4l-1.1.3z M11.5 16.5h5.5",
+    "comics": "M3 3.5h17v15H9l-4 3v-3H3z M6 6h5.5v5H6z M14.5 6.5h2.5m-2.5 3h2.5M6.5 14.5h10",
+    "darts": "M11 3a9 9 0 1 0 10 10 M11.5 7.5a4.5 4.5 0 1 0 5 5 M11.5 12.5l7-7M16 7.8l.5-3.7L20 2l.3 2.8L23 5l-2.3 3.1-4.7.1",
+    "standout-vehicle": "M2.5 14l2-5h9.3l2.9 4.5H20v5H2.5z M5 13.8h10.5M5 18.5V20m12-1.5V20 M18 2l.9 2.3 2.4.9-2.4.8-.9 2.3-.9-2.3-2.2-.8 2.2-.9z",
+    "vehicle-dealer": "M2 10l3-6h14l3 6M3 10h18v10H3z M6 15.5l1.5-2h8l2.5 2v2H6z",
+    "armor-spawn": "M7 3h2.5c0 3 5 3 5 0H17l.8 5.3 2.2 2V20l-8 2-8-2v-9.7l2.2-2z M8 12h8m-8 4h8",
+    "jewelry-store": "M2.5 9.5 7 4h10l4.5 5.5L12 21z M3 9.5h18M9 4l-1.4 5.5L12 21l4.4-11.5L15 4",
+    "phone-store": "M7 2.5h10a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 20V4A1.5 1.5 0 0 1 7 2.5z M10 5h4m-3 13.5h2",
+    "waink-curiosity": "M3 7V3h4m10 0h4v4m0 10v4h-4m-10 0H3v-4 M9 10a3 3 0 0 1 6 0c0 2-3 2-3 4m0 2.7h.01",
+    "waink-landmark": "M3 7V3h4m10 0h4v4m0 10v4h-4m-10 0H3v-4 M7 10l5-3 5 3z M9 12v3m6-3v3m-7 2h8",
+    "waink-sculpture": "M3 7V3h4m10 0h4v4m0 10v4h-4m-10 0H3v-4 M10 12c-2-3-.8-6 2-6 2.5 0 3.4 2.3 2.7 4.5l.6 1.4-1.3.2-.5 1.8L16 16H8l2.6-2.6z M8 18.5h8",
     "all": "M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12 M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17",
     "sports": "M10 14.66V17a1 1 0 0 1-1 1a2 2 0 0 0-2 2v2m7-7.34V17a1 1 0 0 0 1 1a2 2 0 0 1 2 2v2m.916-12H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3M4 22h16 M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3",
     "events": "M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1z M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2m4 7h4m-4 5h4m-8-5h.01M8 16h.01",
@@ -102,6 +115,19 @@
     "safehouse": "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8 M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
     "street-food": "M0 0m12 14l-1 1m2.75 3.25l-1.25 1.42m5.275-14.016a15.68 15.68 0 0 0-12.121 12.12M18.8 9.3a1 1 0 0 0 2.1 7.7 M21.964 20.732a1 1 0 0 1-1.232 1.232l-18-5a1 1 0 0 1-.695-1.232A19.68 19.68 0 0 1 15.732 2.037a1 1 0 0 1 1.232.695z",
   };
+  Object.assign(paths, {
+    magazine: paths.publications,
+    "vehicle-spawn": paths.vehicle,
+    "collectible-card": paths.cards,
+    properties: paths.safehouse,
+    robberies: paths.heists,
+    activities: paths.sports,
+    "collectible-cards": paths.cards,
+    weapons: paths["weapon-spawn"],
+    style: paths.clothing,
+    "food-drink": paths.dining,
+    "local-places": paths.places,
+  });
   const solids = {
     race: "M5 4h5v5H5z M10 9h5v5h-5z M15 4h5l-2 5h-3z",
   };

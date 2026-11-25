@@ -45,18 +45,30 @@ button:disabled { cursor: default; opacity: .48; }
 .text-button { color: var(--berry); font-weight: 620; font-size: 13px; background: transparent; border: 0; padding: 7px; border-radius: 4px; }
 .topbar :focus-visible { outline-color: #67ddd1; }
 .text-button:hover { background: var(--blush); }
-.layers { display: grid; gap: 2px; }
-.layer { display: flex; align-items: center; gap: 9px; text-align: left; width: 100%; min-height: 35px; padding: 6px 10px; font-weight: 550; border: 1px solid transparent; background: none; border-radius: 6px; font-size: 14px; }
-.layer:hover { background: #ffeadf; }
-.layer[aria-pressed=true] { background: #ffdfdf; border-color: #e9a5af; color: #621f45; box-shadow: inset 3px 0 #ad326a; }
+.catalog-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-bottom: 10px; padding: 3px; background: #ead9df; border-radius: 9px; }
+.catalog-modes button { border: 0; background: transparent; padding: 9px; color: var(--ink); border-radius: 7px; font-size: 14px; font-weight: 650; }
+.catalog-modes button[aria-pressed="true"] { color: white; background: #612748; }
+.catalog-group { border-bottom: 1px solid var(--rule); }
+.catalog-group:first-child { border-top: 1px solid var(--rule); }
+.catalog-group summary { display: flex; align-items: center; gap: 8px; padding: 9px 3px; min-height: 44px; list-style: none; }
+.catalog-group summary::-webkit-details-marker { display: none; }
+.catalog-group summary::after { content: ""; width: 7px; height: 7px; margin: 0 5px; border: solid var(--muted); border-width: 0 1.6px 1.6px 0; transform: rotate(45deg); }
+.catalog-group[open] summary::after { transform: rotate(225deg); }
+.filter-copy { flex: 1; min-width: 0; text-align: left; line-height: 1.25; overflow-wrap: anywhere; }
+.filter-copy strong { font-size: 15px; }
+.filter-copy small { display: block; font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.filter-count, .group-count { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.filter-row { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; border: 0; border-radius: 6px; background: transparent; padding: 7px 7px 7px 10px; font-size: 14px; }
+.filter-row:hover, .catalog-group summary:hover { background: #ffeadf; }
+.filter-row[aria-pressed=true] { background: #ffdfdf; color: #621f45; box-shadow: inset 3px 0 #ad326a; }
+.catalog-group .goal-requirement { margin-top: 4px; color: #71405a; }
+#completion-info { font-size: 13px; line-height: 1.4; margin-bottom: 10px; }
+#completion-info p { font-weight: 650; margin: 0 0 2px; }
+#completion-info a { color: var(--berry); }
+#goal-actions { display: grid; gap: 5px; }
 .category-icon { display: inline-grid; place-items: center; flex: none; width: 27px; height: 27px; color: #281735; background: var(--icon-tint); border-radius: 8px; }
-.category-icon svg, #filter-icon svg { display: block; }
-.layer .category-icon { height: 24px; width: 24px; border-radius: 7px; }
-.layer-count { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-.category-label { display: block; margin: 15px 0 5px; font-weight: 650; font-size: 13px; }
-.category-picker { position: relative; }
-#filter-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--berry); }
-#category { width: 100%; background: #fffdfa; color: var(--ink); border: 1px solid #a78a9b; border-radius: 6px; height: 42px; padding: 0 8px 0 38px; font-size: 14px; }
+.category-icon svg { display: block; }
+.filter-row .category-icon { height: 24px; width: 24px; border-radius: 7px; }
 .visited-filter { display: flex; align-items: center; gap: 9px; width: fit-content; min-height: 38px; margin-top: 5px; font-size: 14px; cursor: pointer; }
 .visited-filter input { width: 17px; height: 17px; margin: 0; accent-color: var(--berry); }
 .result-block { border-top: 1px solid var(--rule); padding-top: 13px; }
@@ -118,7 +130,6 @@ noscript { position: absolute; z-index: 10; top: 20%; align-self: center; paddin
   .catalog.searching .result-block { order: -1; border-top: 0; border-bottom: 1px solid var(--rule); }
   .scrim:not([hidden]) { display: block; z-index: 4; position: absolute; inset: 0; background: #2715316b; border: 0; }
   .filter-block, .result-block { padding: 13px 14px; }
-  .layer { min-height: 39px; }
   .map-tools { top: 10px; right: 10px; }
   .map-tools button { width: 43px; height: 43px; }
   .north { right: 23px; bottom: max(12px, env(safe-area-inset-bottom)); }
